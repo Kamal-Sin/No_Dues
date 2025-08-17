@@ -40,8 +40,15 @@ No Dues/
 │   ├── models/          # MongoDB schemas
 │   └── routes/          # API routes
 ├── frontend/            # React application
+│   ├── src/            # React source code
+│   ├── public/         # Static files
+│   └── package.json    # Frontend dependencies
 ├── server.js            # Main server file
-└── package.json         # Backend dependencies
+├── package.json         # Backend dependencies
+├── render.yaml          # Render deployment config
+├── README.md            # Project documentation
+├── DEPLOYMENT.md        # Deployment guide
+└── MONGODB_SETUP.md     # MongoDB setup guide
 ```
 
 ## 🚀 Getting Started
