@@ -3,6 +3,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config(); // To manage environment variables
 
 // Import routes
@@ -24,15 +25,25 @@ mongoose.connect(MONGODB_URI)
   .then(() => console.log('MongoDB connected successfully.'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// Basic Route
-app.get('/', (req, res) => {
-  res.send('No-Dues Application Backend is running!');
-});
-
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use('/api/requests', requestRoutes);
+
+// Serve static files from the React build directory
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, 'frontend/build')));
+
+  // Handle React routing, return all requests to React app
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend/build', 'index.html'));
+  });
+} else {
+  // Basic Route for development
+  app.get('/', (req, res) => {
+    res.send('No-Dues Application Backend is running!');
+  });
+}
 
 // Global error handler (optional, but good practice)
 app.use((err, req, res, next) => {
