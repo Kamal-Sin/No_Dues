@@ -2,7 +2,7 @@ const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-console.log('🚀 Starting build process...');
+console.log('🚂 Railway Build Process Starting...');
 
 try {
   // Check if we're in the right directory
@@ -15,16 +15,15 @@ try {
   }
   console.log('✅ Found index.html template');
 
-  // Install backend dependencies
-  console.log('📦 Installing backend dependencies...');
-  execSync('npm install', { stdio: 'inherit' });
+  // Railway automatically installs backend dependencies, so we skip that
+  console.log('📦 Backend dependencies already installed by Railway');
 
   // Change to frontend directory
   console.log('📁 Changing to frontend directory...');
   process.chdir(path.join(__dirname, 'frontend'));
   console.log('📁 Now in directory:', process.cwd());
 
-  // Install frontend dependencies
+  // Install frontend dependencies (if not already done by postinstall)
   console.log('📦 Installing frontend dependencies...');
   execSync('npm install --legacy-peer-deps --force', { stdio: 'inherit' });
 
@@ -39,8 +38,8 @@ try {
   }
   console.log('✅ Build index.html created successfully');
 
-  console.log('✅ Build completed successfully!');
+  console.log('✅ Railway build completed successfully!');
 } catch (error) {
-  console.error('❌ Build failed:', error.message);
+  console.error('❌ Railway build failed:', error.message);
   process.exit(1);
 }

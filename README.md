@@ -45,7 +45,7 @@ No Dues/
 │   └── package.json    # Frontend dependencies
 ├── server.js            # Main server file
 ├── package.json         # Backend dependencies
-├── render.yaml          # Render deployment config
+├── railway.json         # Railway deployment config
 ├── README.md            # Project documentation
 ├── DEPLOYMENT.md        # Deployment guide
 └── MONGODB_SETUP.md     # MongoDB setup guide
