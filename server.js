@@ -7,9 +7,9 @@ const path = require('path');
 require('dotenv').config(); // To manage environment variables
 
 // Import routes
-const authRoutes = require('./routes/authRoutes');
-const departmentRoutes = require('./routes/departmentRoutes');
-const requestRoutes = require('./routes/requestRoutes');
+const authRoutes = require('./backend/routes/authRoutes');
+const departmentRoutes = require('./backend/routes/departmentRoutes');
+const requestRoutes = require('./backend/routes/requestRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;

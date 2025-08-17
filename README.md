@@ -34,10 +34,11 @@ A comprehensive No-Dues management system for universities with role-based acces
 
 ```
 No Dues/
-├── controllers/          # Route controllers
-├── middleware/           # Authentication & role middleware
-├── models/              # MongoDB schemas
-├── routes/              # API routes
+├── backend/             # Backend application
+│   ├── controllers/     # Route controllers
+│   ├── middleware/      # Authentication & role middleware
+│   ├── models/          # MongoDB schemas
+│   └── routes/          # API routes
 ├── frontend/            # React application
 ├── server.js            # Main server file
 └── package.json         # Backend dependencies
