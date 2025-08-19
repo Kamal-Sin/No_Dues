@@ -8,12 +8,7 @@ const ProtectedRoute = ({ allowedRoles, children }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  console.log("ProtectedRoute:", {
-    user,
-    loading,
-    allowedRoles,
-    pathname: location.pathname,
-  });
+
 
   if (loading) {
     return (
@@ -31,12 +26,12 @@ const ProtectedRoute = ({ allowedRoles, children }) => {
   }
 
   if (!user) {
-    console.log("No user, redirecting to login");
+
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    console.log("User role not allowed, redirecting");
+
     if (user.role === "student")
       return <Navigate to="/student/dashboard" replace />;
     if (user.role === "staff")
@@ -46,7 +41,7 @@ const ProtectedRoute = ({ allowedRoles, children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  console.log("Rendering protected content");
+
   return children;
 };
 

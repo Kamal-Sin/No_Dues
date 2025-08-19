@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 require('dotenv').config(); // To manage environment variables
 
 // Import routes
@@ -69,19 +70,29 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Root endpoint
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'No-Dues Backend API',
-    version: '1.0.0',
-    endpoints: {
-      auth: '/api/auth',
-      departments: '/api/departments',
-      requests: '/api/requests',
-      health: '/health'
-    }
+// Serve static files in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static('public'));
+  
+  // Handle React routing, return all requests to React app
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
   });
-});
+} else {
+  // Root endpoint for development
+  app.get('/', (req, res) => {
+    res.json({ 
+      message: 'No-Dues Backend API',
+      version: '1.0.0',
+      endpoints: {
+        auth: '/api/auth',
+        departments: '/api/departments',
+        requests: '/api/requests',
+        health: '/health'
+      }
+    });
+  });
+}
 
 // Global error handler (optional, but good practice)
 app.use((err, req, res, next) => {

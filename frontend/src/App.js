@@ -26,167 +26,38 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  Paper,
+  Divider,
+  Link,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
+  IconButton,
 } from "@mui/material";
 import LoginIcon from "@mui/icons-material/Login";
 import LogoutIcon from "@mui/icons-material/Logout";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import PostAddIcon from "@mui/icons-material/PostAdd";
+import ArrowBack from "@mui/icons-material/ArrowBack";
 import axios from "axios";
 
 // Import contexts and components
 import { AuthProvider, useAuth, apiClient } from "./contexts/AuthContext";
 import { SnackbarProvider, useSnackbar } from "./contexts/SnackbarContext";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import LandingPage from "./pages/LandingPage";
+import LoginPage from "./pages/LoginPage";
 
 // --- Page Components ---
-
-// --- 4. Page Components ---
-
-// LoginPage.js
-const LoginPage = () => {
-  const { login, user, authError, setAuthError } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
-  const [formError, setFormError] = React.useState(""); // Specific to login form
-  const [loading, setLoading] = React.useState(false);
-
-  const from = location.state?.from?.pathname || "/";
-
-  useEffect(() => {
-    if (user) {
-      // If user is already logged in, redirect
-      const redirectTo =
-        user.role === "student"
-          ? "/student/dashboard"
-          : user.role === "staff"
-          ? "/staff/dashboard"
-          : user.role === "admin"
-          ? "/admin/dashboard"
-          : "/";
-      navigate(redirectTo, { replace: true });
-    }
-  }, [user, navigate]);
-
-  // Clear authError when component mounts or email/password changes, so it doesn't persist from other pages
-  useEffect(() => {
-    setAuthError("");
-  }, [setAuthError, email, password]);
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setFormError("");
-    setAuthError(""); // Clear global auth error before new attempt
-    setLoading(true);
-    try {
-      const response = await apiClient.post("/auth/login", { email, password });
-      login(response.data);
-      // Navigate to intended page or role-based dashboard
-      const userRole = response.data.user.role;
-      const defaultRedirect =
-        userRole === "student"
-          ? "/student/dashboard"
-          : userRole === "staff"
-          ? "/staff/dashboard"
-          : userRole === "admin"
-          ? "/admin/dashboard"
-          : "/";
-      navigate(
-        from === "/login" || from === "/" || from === "/register"
-          ? defaultRedirect
-          : from,
-        { replace: true }
-      );
-    } catch (err) {
-      const errMsg =
-        err.response?.data?.message ||
-        "Login failed. Please check your credentials.";
-      if (err.response?.status === 401) {
-        // Specific handling for login 401
-        setFormError(errMsg); // Show error on login form
-      } else {
-        setFormError("An unexpected error occurred during login."); // Generic error for other issues
-      }
-      console.error("Login error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Container component="main" maxWidth="xs">
-      <Box
-        sx={{
-          marginTop: 8,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
-        <Typography component="h1" variant="h5">
-          Sign In
-        </Typography>
-        {authError && (
-          <Alert severity="warning" sx={{ width: "100%", mt: 2 }}>
-            {authError}
-          </Alert>
-        )}
-        {formError && (
-          <Alert severity="error" sx={{ width: "100%", mt: 2 }}>
-            {formError}
-          </Alert>
-        )}
-        <Box component="form" onSubmit={handleLogin} sx={{ mt: 1 }}>
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            id="email"
-            label="Email Address"
-            name="email"
-            type="email"
-            autoComplete="email"
-            autoFocus
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            error={!!formError}
-          />
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            name="password"
-            label="Password"
-            type="password"
-            id="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            error={!!formError}
-          />
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 3, mb: 2 }}
-            disabled={loading}
-          >
-            {loading ? <CircularProgress size={24} /> : "Sign In"}
-          </Button>
-          <RouterLink to="/register" variant="body2">
-            {"Don't have an account? Sign Up"}
-          </RouterLink>
-        </Box>
-      </Box>
-    </Container>
-  );
-};
 
 // RegisterPage.js
 const RegisterPage = () => {
@@ -265,24 +136,72 @@ const RegisterPage = () => {
   };
 
   return (
-    <Container component="main" maxWidth="xs">
-      <Box
-        sx={{
-          marginTop: 8,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
-        <Typography component="h1" variant="h5">
-          Sign Up
-        </Typography>
-        {formError && (
-          <Alert severity="error" sx={{ width: "100%", mt: 2 }}>
-            {formError}
-          </Alert>
-        )}
-        <Box component="form" onSubmit={handleRegister} sx={{ mt: 1 }}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        background: "#f5f5f5",
+        display: "flex",
+        alignItems: "center",
+        py: 4,
+      }}
+    >
+      <Container maxWidth="sm">
+        {/* Back to Home */}
+        <Box sx={{ mb: 3 }}>
+          <Button
+            component={RouterLink}
+            to="/"
+            startIcon={<ArrowBack />}
+            sx={{
+              color: "#666",
+              textTransform: "none",
+              fontWeight: 500,
+              "&:hover": {
+                color: "#ff6b35",
+              },
+            }}
+          >
+            Back to Home
+          </Button>
+        </Box>
+
+        <Paper
+          elevation={8}
+          sx={{
+            p: 4,
+            borderRadius: 3,
+            background: "rgba(255, 255, 255, 0.95)",
+            backdropFilter: "blur(10px)",
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+          }}
+        >
+          {/* Header */}
+          <Box sx={{ textAlign: "center", mb: 4 }}>
+            <Typography
+              variant="h3"
+              component="h1"
+              sx={{
+                fontWeight: "bold",
+                fontFamily: "serif",
+                color: "#333",
+                mb: 1,
+              }}
+            >
+              Create Account
+            </Typography>
+            <Typography variant="body1" sx={{ color: "#666" }}>
+              Join the No-Dues digital management system
+            </Typography>
+          </Box>
+          {/* Error Messages */}
+          {formError && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {formError}
+            </Alert>
+          )}
+
+          {/* Registration Form */}
+          <Box component="form" onSubmit={handleRegister}>
           <TextField
             margin="normal"
             required
@@ -352,72 +271,100 @@ const RegisterPage = () => {
               <MenuItem value="admin">Admin</MenuItem>
             </Select>
           </FormControl>
-          {role === "staff" &&
-            (departments.length > 0 ? (
-              <FormControl fullWidth margin="normal" required>
-                <InputLabel id="department-select-label">Department</InputLabel>
-                <Select
-                  labelId="department-select-label"
-                  value={departmentName}
-                  label="Department"
-                  onChange={(e) => setDepartmentName(e.target.value)}
-                  error={
-                    !!(
-                      formError &&
-                      formError.toLowerCase().includes("department")
-                    )
-                  }
-                >
-                  {departments.map((dept) => (
-                    <MenuItem key={dept._id} value={dept.name}>
-                      {dept.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {formError &&
-                  formError.toLowerCase().includes("department") && (
-                    <Typography color="error" variant="caption">
-                      {formError}
-                    </Typography>
-                  )}
-              </FormControl>
-            ) : (
-              <TextField
-                margin="normal"
-                required={role === "staff"}
-                fullWidth
-                name="departmentName"
-                label="Department Name (Enter Exact Name)"
-                id="departmentName"
+          {role === "staff" && (
+            <FormControl fullWidth margin="normal" required>
+              <InputLabel id="department-select-label">Department</InputLabel>
+              <Select
+                labelId="department-select-label"
                 value={departmentName}
+                label="Department"
                 onChange={(e) => setDepartmentName(e.target.value)}
                 error={
                   !!(
-                    formError && formError.toLowerCase().includes("department")
+                    formError &&
+                    formError.toLowerCase().includes("department")
                   )
                 }
-                helperText={
-                  formError && formError.toLowerCase().includes("department")
-                    ? formError
-                    : "If your department is not listed, enter its official name."
-                }
-              />
-            ))}
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 3, mb: 2 }}
-            disabled={loading}
-          >
-            {loading ? <CircularProgress size={24} /> : "Sign Up"}
-          </Button>
-          <RouterLink to="/login" variant="body2">
-            {"Already have an account? Sign In"}
-          </RouterLink>
-        </Box>
-      </Box>
-    </Container>
+              >
+                {departments.length > 0 ? (
+                  departments.map((dept) => (
+                    <MenuItem key={dept._id} value={dept.name}>
+                      {dept.name}
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem value="" disabled>
+                    No departments available
+                  </MenuItem>
+                )}
+              </Select>
+              {formError &&
+                formError.toLowerCase().includes("department") && (
+                  <Typography color="error" variant="caption">
+                    {formError}
+                  </Typography>
+                )}
+              {departments.length === 0 && (
+                <Typography variant="caption" color="text.secondary">
+                  Please contact admin to add departments first.
+                </Typography>
+              )}
+            </FormControl>
+          )}
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              disabled={loading}
+              sx={{
+                bgcolor: "#ff6b35",
+                py: 1.5,
+                fontSize: "1.1rem",
+                fontWeight: 600,
+                textTransform: "none",
+                borderRadius: 2,
+                mb: 3,
+                "&:hover": {
+                  bgcolor: "#e55a2b",
+                },
+                "&:disabled": {
+                  bgcolor: "#ccc",
+                },
+              }}
+            >
+              {loading ? "Creating Account..." : "Create Account"}
+            </Button>
+          </Box>
+
+          <Divider sx={{ my: 3 }}>
+            <Typography variant="body2" sx={{ color: "#666" }}>
+              OR
+            </Typography>
+          </Divider>
+
+          {/* Login Link */}
+          <Box sx={{ textAlign: "center" }}>
+            <Typography variant="body1" sx={{ color: "#666", mb: 1 }}>
+              Already have an account?
+            </Typography>
+            <Link
+              component={RouterLink}
+              to="/login"
+              sx={{
+                color: "#ff6b35",
+                textDecoration: "none",
+                fontWeight: 600,
+                "&:hover": {
+                  textDecoration: "underline",
+                },
+              }}
+            >
+              Sign In
+            </Link>
+          </Box>
+        </Paper>
+      </Container>
+    </Box>
   );
 };
 
@@ -716,7 +663,9 @@ const StaffDashboard = () => {
             {req.departmentsStatus?.find(
               (ds) =>
                 (ds.department?._id === user?.department?.id ||
-                  ds.department === user?.department?.id) &&
+                  ds.department === user?.department?.id ||
+                  ds.department?._id === user?.department?._id ||
+                  ds.department === user?.department?._id) &&
                 ds.status === "pending"
             ) && (
               <Box sx={{ mt: 1 }}>
@@ -743,7 +692,9 @@ const StaffDashboard = () => {
             {req.departmentsStatus?.find(
               (ds) =>
                 (ds.department?._id === user?.department?.id ||
-                  ds.department === user?.department?.id) &&
+                  ds.department === user?.department?.id ||
+                  ds.department?._id === user?.department?._id ||
+                  ds.department === user?.department?._id) &&
                 ds.status !== "pending"
             ) && (
               <Typography sx={{ mt: 1, fontStyle: "italic" }}>
@@ -1061,16 +1012,16 @@ const NotFoundPage = () => (
 
 // --- 5. Layout Component (with Navbar) ---
 const Layout = () => {
-  const { user, logout, authError } = useAuth(); // Get authError to display globally if needed
+  const { user, logout, authError } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate("/");
   };
 
   const getDashboardPath = () => {
-    if (!user) return "/login";
+    if (!user) return "/";
     switch (user.role) {
       case "student":
         return "/student/dashboard";
@@ -1079,20 +1030,36 @@ const Layout = () => {
       case "admin":
         return "/admin/dashboard";
       default:
-        return "/login";
+        return "/";
     }
   };
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-      <AppBar position="static">
+      <AppBar 
+        position="static" 
+        elevation={1}
+        sx={{ 
+          bgcolor: "white", 
+          color: "black",
+          borderBottom: "1px solid #e0e0e0"
+        }}
+      >
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <Typography 
+            variant="h5" 
+            component="div" 
+            sx={{ 
+              flexGrow: 1, 
+              fontWeight: "bold",
+              fontFamily: "serif"
+            }}
+          >
             <RouterLink
               to={getDashboardPath()}
               style={{ textDecoration: "none", color: "inherit" }}
             >
-              No-Dues App
+              No-Dues
             </RouterLink>
           </Typography>
           {user ? (
@@ -1102,15 +1069,30 @@ const Layout = () => {
                 component={RouterLink}
                 to={getDashboardPath()}
                 startIcon={<DashboardIcon />}
+                sx={{ 
+                  textTransform: "none",
+                  fontWeight: 500,
+                  mr: 1
+                }}
               >
                 Dashboard
               </Button>
               <Button
-                color="inherit"
+                variant="outlined"
                 onClick={handleLogout}
                 startIcon={<LogoutIcon />}
+                sx={{ 
+                  textTransform: "none",
+                  fontWeight: 500,
+                  borderColor: "#ff6b35",
+                  color: "#ff6b35",
+                  "&:hover": {
+                    borderColor: "#e55a2b",
+                    bgcolor: "rgba(255,107,53,0.1)"
+                  }
+                }}
               >
-                Logout ({user.name})
+                Logout
               </Button>
             </>
           ) : (
@@ -1120,10 +1102,27 @@ const Layout = () => {
                 component={RouterLink}
                 to="/login"
                 startIcon={<LoginIcon />}
+                sx={{ 
+                  textTransform: "none",
+                  fontWeight: 500,
+                  mr: 1
+                }}
               >
                 Login
               </Button>
-              <Button color="inherit" component={RouterLink} to="/register">
+              <Button 
+                variant="contained"
+                component={RouterLink} 
+                to="/register"
+                sx={{ 
+                  bgcolor: "#ff6b35",
+                  textTransform: "none",
+                  fontWeight: 500,
+                  "&:hover": {
+                    bgcolor: "#e55a2b"
+                  }
+                }}
+              >
                 Register
               </Button>
             </>
@@ -1136,13 +1135,19 @@ const Layout = () => {
             <Alert severity="error" sx={{ mb: 2 }}>
               {authError}
             </Alert>
-          ) /* Show global auth error if user is logged out due to it */
+          )
         }
         <Outlet />
       </Container>
       <Box
         component="footer"
-        sx={{ bgcolor: "background.paper", py: 3, px: 2, mt: "auto" }}
+        sx={{ 
+          bgcolor: "white", 
+          py: 3, 
+          px: 2, 
+          mt: "auto",
+          borderTop: "1px solid #e0e0e0"
+        }}
       >
         <Typography variant="body2" color="text.secondary" align="center">
           © {new Date().getFullYear()} Graphic Era University No-Dues System
@@ -1156,14 +1161,53 @@ const Layout = () => {
 function App() {
   const theme = createTheme({
     palette: {
-      primary: { main: "#1976d2" }, // MUI default blue
-      secondary: { main: "#9c27b0" }, // MUI default purple
-      error: { main: "#d32f2f" }, // MUI default red
-      warning: { main: "#ed6c02" }, // MUI default orange
-      info: { main: "#0288d1" }, // MUI default light blue
-      success: { main: "#2e7d32" }, // MUI default green
+      primary: { main: "#ff6b35" }, // Orange theme
+      secondary: { main: "#1976d2" }, // Blue accent
+      error: { main: "#d32f2f" },
+      warning: { main: "#ed6c02" },
+      info: { main: "#0288d1" },
+      success: { main: "#2e7d32" },
+      background: {
+        default: "#f5f5f5",
+        paper: "#ffffff",
+      },
     },
-    typography: { fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif' },
+    typography: { 
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      h1: {
+        fontFamily: '"Georgia", "Times New Roman", serif',
+        fontWeight: 700,
+      },
+      h2: {
+        fontFamily: '"Georgia", "Times New Roman", serif',
+        fontWeight: 700,
+      },
+      h3: {
+        fontFamily: '"Georgia", "Times New Roman", serif',
+        fontWeight: 600,
+      },
+    },
+    shape: {
+      borderRadius: 12,
+    },
+    components: {
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            textTransform: 'none',
+            fontWeight: 600,
+            borderRadius: 8,
+          },
+        },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            borderRadius: 12,
+          },
+        },
+      },
+    },
   });
 
   return (
@@ -1173,10 +1217,13 @@ function App() {
         <AuthProvider>
           <SnackbarProvider>
             <Routes>
+              {/* Landing page - no layout wrapper */}
+              <Route path="/" element={<LandingPage />} />
+              
+              {/* App routes with layout wrapper */}
               <Route element={<Layout />}>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
-                <Route path="/" element={<Navigate to="/login" replace />} />
 
                 {/* Student Routes */}
                 <Route
