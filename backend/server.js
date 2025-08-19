@@ -16,6 +16,9 @@ const requestRoutes = require('./routes/requestRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Log the port being used
+console.log(`Starting server on port: ${PORT}`);
+
 // Security middleware
 app.use(helmet());
 
@@ -117,22 +120,36 @@ app.use((err, req, res, next) => {
 
 // Start server
 const server = app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/health`);
+  console.log(`✅ Server is running on port ${PORT}`);
+  console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+  console.log(`🔗 Ping endpoint: http://localhost:${PORT}/ping`);
+  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
 // Handle server errors
 server.on('error', (error) => {
-  console.error('Server error:', error);
+  console.error('❌ Server error:', error);
   if (error.code === 'EADDRINUSE') {
-    console.error(`Port ${PORT} is already in use`);
+    console.error(`❌ Port ${PORT} is already in use`);
   }
+  process.exit(1);
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
+  console.log('🛑 SIGTERM received, shutting down gracefully');
   server.close(() => {
-    console.log('Process terminated');
+    console.log('✅ Process terminated');
   });
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
 });
