@@ -143,13 +143,13 @@ process.on('SIGTERM', () => {
   });
 });
 
-// Handle uncaught exceptions
+// Handle uncaught exceptions (less aggressive for Railway)
 process.on('uncaughtException', (error) => {
   console.error('❌ Uncaught Exception:', error);
-  process.exit(1);
+  // Don't exit immediately, let Railway handle it
 });
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
-  process.exit(1);
+  // Don't exit immediately, let Railway handle it
 });
