@@ -7,7 +7,7 @@ COPY backend/package*.json ./backend/
 COPY backend/ ./backend/
 
 # Install backend dependencies
-RUN cd backend && npm ci --omit=dev
+RUN cd backend && npm install --omit=dev
 
 # Expose port
 EXPOSE 5000
