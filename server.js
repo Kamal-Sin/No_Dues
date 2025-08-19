@@ -32,6 +32,7 @@ const authLimiter = rateLimit({
 const corsOptions = {
   origin: [
     'http://localhost:3000', // Local development
+    'https://your-frontend-domain.vercel.app', // Replace with your Vercel domain
     process.env.FRONTEND_URL // Environment variable for frontend URL
   ].filter(Boolean), // Remove undefined values
   credentials: true,
