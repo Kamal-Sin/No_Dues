@@ -55,7 +55,10 @@ mongoose.connect(MONGODB_URI)
     const { host, name, port } = mongoose.connection;
     console.log(`MongoDB connection details -> host: ${host}, port: ${port}, db: ${name}`);
   })
-  .catch(err => console.error('MongoDB connection error:', err));
+  .catch(err => {
+    console.error('MongoDB connection error:', err);
+    // Don't exit the process, let the server start even if DB fails
+  });
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -64,9 +67,30 @@ app.use('/api/requests', requestRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
+  try {
+    const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+    res.json({ 
+      status: 'OK', 
+      message: 'No-Dues Backend API is running!',
+      timestamp: new Date().toISOString(),
+      database: dbStatus,
+      port: PORT
+    });
+  } catch (error) {
+    console.error('Health check error:', error);
+    res.status(500).json({ 
+      status: 'ERROR', 
+      message: 'Health check failed',
+      error: error.message 
+    });
+  }
+});
+
+// Simple health check (no DB dependency)
+app.get('/ping', (req, res) => {
   res.json({ 
     status: 'OK', 
-    message: 'No-Dues Backend API is running!',
+    message: 'Server is running',
     timestamp: new Date().toISOString()
   });
 });
@@ -91,7 +115,24 @@ app.use((err, req, res, next) => {
   res.status(500).send({ message: 'Something broke!', error: err.message });
 });
 
-app.listen(PORT, () => {
+// Start server
+const server = app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
+});
+
+// Handle server errors
+server.on('error', (error) => {
+  console.error('Server error:', error);
+  if (error.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use`);
+  }
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('Process terminated');
+  });
 });
