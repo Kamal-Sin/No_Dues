@@ -1,4 +1,4 @@
-// server.js (Main entry point for the backend)
+// backend/server.js (Main entry point for the backend)
 
 const express = require('express');
 const mongoose = require('mongoose');
@@ -9,9 +9,9 @@ const path = require('path');
 require('dotenv').config(); // To manage environment variables
 
 // Import routes
-const authRoutes = require('./backend/routes/authRoutes');
-const departmentRoutes = require('./backend/routes/departmentRoutes');
-const requestRoutes = require('./backend/routes/requestRoutes');
+const authRoutes = require('./routes/authRoutes');
+const departmentRoutes = require('./routes/departmentRoutes');
+const requestRoutes = require('./routes/requestRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -71,29 +71,19 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static('public'));
-  
-  // Handle React routing, return all requests to React app
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// Root endpoint for development
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'No-Dues Backend API',
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/auth',
+      departments: '/api/departments',
+      requests: '/api/requests',
+      health: '/health'
+    }
   });
-} else {
-  // Root endpoint for development
-  app.get('/', (req, res) => {
-    res.json({ 
-      message: 'No-Dues Backend API',
-      version: '1.0.0',
-      endpoints: {
-        auth: '/api/auth',
-        departments: '/api/departments',
-        requests: '/api/requests',
-        health: '/health'
-      }
-    });
-  });
-}
+});
 
 // Global error handler (optional, but good practice)
 app.use((err, req, res, next) => {
@@ -104,4 +94,4 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
-}); 
+});

@@ -136,12 +136,12 @@ const RegisterPage = () => {
   };
 
   return (
-    <Box
-      sx={{
+      <Box
+        sx={{
         minHeight: "100vh",
         background: "#f5f5f5",
-        display: "flex",
-        alignItems: "center",
+          display: "flex",
+          alignItems: "center",
         py: 4,
       }}
     >
@@ -188,17 +188,17 @@ const RegisterPage = () => {
               }}
             >
               Create Account
-            </Typography>
+        </Typography>
             <Typography variant="body1" sx={{ color: "#666" }}>
               Join the No-Dues digital management system
             </Typography>
           </Box>
           {/* Error Messages */}
-          {formError && (
+        {formError && (
             <Alert severity="error" sx={{ mb: 3 }}>
-              {formError}
-            </Alert>
-          )}
+            {formError}
+          </Alert>
+        )}
 
           {/* Registration Form */}
           <Box component="form" onSubmit={handleRegister}>
@@ -272,20 +272,20 @@ const RegisterPage = () => {
             </Select>
           </FormControl>
           {role === "staff" && (
-            <FormControl fullWidth margin="normal" required>
-              <InputLabel id="department-select-label">Department</InputLabel>
-              <Select
-                labelId="department-select-label"
-                value={departmentName}
-                label="Department"
-                onChange={(e) => setDepartmentName(e.target.value)}
-                error={
-                  !!(
-                    formError &&
-                    formError.toLowerCase().includes("department")
-                  )
-                }
-              >
+              <FormControl fullWidth margin="normal" required>
+                <InputLabel id="department-select-label">Department</InputLabel>
+                <Select
+                  labelId="department-select-label"
+                  value={departmentName}
+                  label="Department"
+                  onChange={(e) => setDepartmentName(e.target.value)}
+                  error={
+                    !!(
+                      formError &&
+                      formError.toLowerCase().includes("department")
+                    )
+                  }
+                >
                 {departments.length > 0 ? (
                   departments.map((dept) => (
                     <MenuItem key={dept._id} value={dept.name}>
@@ -297,25 +297,25 @@ const RegisterPage = () => {
                     No departments available
                   </MenuItem>
                 )}
-              </Select>
-              {formError &&
-                formError.toLowerCase().includes("department") && (
-                  <Typography color="error" variant="caption">
-                    {formError}
+                </Select>
+                {formError &&
+                  formError.toLowerCase().includes("department") && (
+                    <Typography color="error" variant="caption">
+                      {formError}
                   </Typography>
                 )}
               {departments.length === 0 && (
                 <Typography variant="caption" color="text.secondary">
                   Please contact admin to add departments first.
-                </Typography>
-              )}
-            </FormControl>
+                    </Typography>
+                  )}
+              </FormControl>
           )}
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              disabled={loading}
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            disabled={loading}
               sx={{
                 bgcolor: "#ff6b35",
                 py: 1.5,
@@ -333,8 +333,8 @@ const RegisterPage = () => {
               }}
             >
               {loading ? "Creating Account..." : "Create Account"}
-            </Button>
-          </Box>
+          </Button>
+        </Box>
 
           <Divider sx={{ my: 3 }}>
             <Typography variant="body2" sx={{ color: "#666" }}>
@@ -361,9 +361,9 @@ const RegisterPage = () => {
             >
               Sign In
             </Link>
-          </Box>
+      </Box>
         </Paper>
-      </Container>
+    </Container>
     </Box>
   );
 };

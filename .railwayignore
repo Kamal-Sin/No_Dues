@@ -8,3 +8,4 @@ README.md
 DEPLOYMENT.md
 deploy.sh
 build.sh
+package-lock.json
