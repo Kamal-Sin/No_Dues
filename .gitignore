@@ -65,7 +65,10 @@ dist
 
 # Gatsby files
 .cache/
-public
+
+# Build outputs (but not frontend/public)
+build/
+dist/
 
 # Storybook build outputs
 .out
@@ -90,10 +93,6 @@ temp/
 .Trashes
 ehthumbs.db
 Thumbs.db
-
-# Build outputs
-build/
-dist/
 
 # Database files
 *.db
