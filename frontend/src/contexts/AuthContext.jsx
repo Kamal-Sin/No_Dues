@@ -4,19 +4,37 @@ import axios from "axios";
 
 // Helper function to safely get base URL
 const getApiBaseURL = () => {
+  console.log('Environment check:', {
+    process: typeof process,
+    env: process.env,
+    REACT_APP_API_URL: process.env?.REACT_APP_API_URL,
+    hostname: window.location.hostname
+  });
+  
   if (
     typeof process !== "undefined" &&
     process.env &&
     process.env.REACT_APP_API_URL
   ) {
+    console.log('Using environment variable:', process.env.REACT_APP_API_URL);
     return process.env.REACT_APP_API_URL;
   }
+  
+  // Fallback for production
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    console.log('Production detected, but no REACT_APP_API_URL found');
+  }
+  
+  console.log('Using localhost fallback');
   return "http://localhost:5000/api";
 };
 
 const apiClient = axios.create({
   baseURL: getApiBaseURL(),
 });
+
+// Log the final API base URL
+console.log('Final API Base URL:', getApiBaseURL());
 
 apiClient.interceptors.request.use(
   (config) => {

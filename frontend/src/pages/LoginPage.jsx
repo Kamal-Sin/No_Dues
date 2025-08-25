@@ -55,6 +55,19 @@ const LoginPage = () => {
     setFormError("");
     setAuthError("");
     setLoading(true);
+    
+    // First, test the connection to the backend
+    try {
+      console.log("Testing backend connection...");
+      await apiClient.get("/ping");
+      console.log("Backend connection successful");
+    } catch (error) {
+      console.error("Backend connection failed:", error);
+      setFormError("Unable to connect to the server. Please check your configuration.");
+      setLoading(false);
+      return;
+    }
+    
     try {
       const response = await apiClient.post("/auth/login", { email, password });
       login(response.data);
@@ -69,15 +82,24 @@ const LoginPage = () => {
           : "/";
       navigate(defaultRedirect, { replace: true });
     } catch (err) {
+      console.error("Login error details:", {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        config: err.config
+      });
+      
       const errMsg =
         err.response?.data?.message ||
         "Login failed. Please check your credentials.";
+      
       if (err.response?.status === 401) {
         setFormError(errMsg);
+      } else if (err.code === 'NETWORK_ERROR' || err.message.includes('Network Error')) {
+        setFormError("Unable to connect to the server. Please check your internet connection.");
       } else {
         setFormError("An unexpected error occurred during login.");
       }
-      console.error("Login error:", err);
     } finally {
       setLoading(false);
     }

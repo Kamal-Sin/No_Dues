@@ -35,8 +35,9 @@ const authLimiter = rateLimit({
 const corsOptions = {
   origin: [
     'http://localhost:3000', // Local development
-    'https://your-frontend-domain.vercel.app', // Replace with your Vercel domain
-    process.env.FRONTEND_URL // Environment variable for frontend URL
+    process.env.FRONTEND_URL, // Environment variable for frontend URL
+    /\.vercel\.app$/, // Allow all Vercel domains
+    /\.railway\.app$/ // Allow all Railway domains
   ].filter(Boolean), // Remove undefined values
   credentials: true,
   optionsSuccessStatus: 200
@@ -72,8 +73,8 @@ app.use('/api/requests', requestRoutes);
 app.get('/health', (req, res) => {
   try {
     const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
-    res.json({ 
-      status: 'OK', 
+    res.json({
+      status: 'OK',
       message: 'No-Dues Backend API is running!',
       timestamp: new Date().toISOString(),
       database: dbStatus,
@@ -81,18 +82,18 @@ app.get('/health', (req, res) => {
     });
   } catch (error) {
     console.error('Health check error:', error);
-    res.status(500).json({ 
-      status: 'ERROR', 
+    res.status(500).json({
+      status: 'ERROR',
       message: 'Health check failed',
-      error: error.message 
+      error: error.message
     });
   }
 });
 
 // Simple health check (no DB dependency)
 app.get('/ping', (req, res) => {
-  res.json({ 
-    status: 'OK', 
+  res.json({
+    status: 'OK',
     message: 'Server is running',
     timestamp: new Date().toISOString()
   });
@@ -100,7 +101,7 @@ app.get('/ping', (req, res) => {
 
 // Root endpoint for development
 app.get('/', (req, res) => {
-  res.json({ 
+  res.json({
     message: 'No-Dues Backend API',
     version: '1.0.0',
     endpoints: {
