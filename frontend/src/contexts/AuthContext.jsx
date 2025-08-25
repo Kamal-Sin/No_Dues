@@ -23,18 +23,23 @@ const getApiBaseURL = () => {
   // Fallback for production
   if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
     console.log('Production detected, but no REACT_APP_API_URL found');
+    console.log('Using Railway fallback URL');
+    // Temporary explicit fallback for deployed site
+    return 'https://nodues-production.up.railway.app/api';
   }
   
   console.log('Using localhost fallback');
   return "http://localhost:5000/api";
 };
 
+const baseURL = getApiBaseURL();
 const apiClient = axios.create({
-  baseURL: getApiBaseURL(),
+  baseURL: baseURL,
 });
 
 // Log the final API base URL
-console.log('Final API Base URL:', getApiBaseURL());
+console.log('Final API Base URL:', baseURL);
+console.log('API Client baseURL:', apiClient.defaults.baseURL);
 
 apiClient.interceptors.request.use(
   (config) => {
