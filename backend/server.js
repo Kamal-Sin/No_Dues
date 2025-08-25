@@ -69,6 +69,15 @@ app.use('/api/auth', authRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use('/api/requests', requestRoutes);
 
+// API ping endpoint
+app.get('/api/ping', (req, res) => {
+  res.json({
+    status: 'OK',
+    message: 'API is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   try {
