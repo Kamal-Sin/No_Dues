@@ -25,7 +25,7 @@ module.exports = {
   cors: {
     origin: [
       process.env.FRONTEND_URL,
-      'https://no-dues-app.vercel.app' // Vercel deployment URL
+      'https://no-dues-frontend-biws.vercel.app' // Your actual Vercel URL
     ].filter(Boolean),
     credentials: true,
     optionsSuccessStatus: 200

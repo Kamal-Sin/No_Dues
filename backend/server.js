@@ -30,11 +30,14 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Import config
+const config = require('./config');
+
 // CORS Configuration
 const corsOptions = {
   origin: [
     'http://localhost:3000', // Local development
-    process.env.FRONTEND_URL, // Environment variable for frontend URL
+    ...config.cors.origin // Production URLs from config
   ].filter(Boolean), // Remove undefined values
   credentials: true,
   optionsSuccessStatus: 200
