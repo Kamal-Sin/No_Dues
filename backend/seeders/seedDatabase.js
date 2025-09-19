@@ -16,24 +16,7 @@ const seedDatabase = async () => {
     await Department.deleteMany({});
     console.log('🗑️  Cleared existing data');
 
-    // Create departments
-    const departments = [
-      { name: 'Computer Science' },
-      { name: 'Electronics & Communication' },
-      { name: 'Mechanical Engineering' },
-      { name: 'Civil Engineering' },
-      { name: 'Electrical Engineering' },
-      { name: 'Information Technology' },
-      { name: 'Library' },
-      { name: 'Accounts' },
-      { name: 'Hostel' },
-      { name: 'Sports' }
-    ];
-
-    const createdDepartments = await Department.insertMany(departments);
-    console.log('✅ Created departments');
-
-    // Create admin user
+    // Create admin user first
     const adminUser = new User({
       name: 'System Administrator',
       email: 'admin@gmail.com',
@@ -42,6 +25,23 @@ const seedDatabase = async () => {
     });
     await adminUser.save();
     console.log('✅ Created admin user');
+
+    // Create departments with admin as creator
+    const departments = [
+      { name: 'Computer Science', createdBy: adminUser._id },
+      { name: 'Electronics & Communication', createdBy: adminUser._id },
+      { name: 'Mechanical Engineering', createdBy: adminUser._id },
+      { name: 'Civil Engineering', createdBy: adminUser._id },
+      { name: 'Electrical Engineering', createdBy: adminUser._id },
+      { name: 'Information Technology', createdBy: adminUser._id },
+      { name: 'Library', createdBy: adminUser._id },
+      { name: 'Accounts', createdBy: adminUser._id },
+      { name: 'Hostel', createdBy: adminUser._id },
+      { name: 'Sports', createdBy: adminUser._id }
+    ];
+
+    const createdDepartments = await Department.insertMany(departments);
+    console.log('✅ Created departments');
 
     // Create staff user
     const staffUser = new User({

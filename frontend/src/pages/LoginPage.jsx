@@ -225,28 +225,6 @@ const LoginPage = () => {
             </Button>
           </Box>
 
-          {/* Divider */}
-          <Divider sx={{ my: 3 }}>
-            <Typography variant="body2" color="text.secondary">
-              OR
-            </Typography>
-          </Divider>
-
-          {/* Demo Accounts Info */}
-          <Box sx={{ textAlign: "center" }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              Demo Accounts Available:
-            </Typography>
-            <Typography variant="caption" color="text.secondary" display="block">
-              Student: student@demo.com / password123
-            </Typography>
-            <Typography variant="caption" color="text.secondary" display="block">
-              Staff: staff@demo.com / password123
-            </Typography>
-            <Typography variant="caption" color="text.secondary" display="block">
-              Admin: admin@demo.com / password123
-            </Typography>
-          </Box>
         </Paper>
       </Container>
     </Box>
