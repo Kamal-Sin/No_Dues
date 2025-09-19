@@ -1,14 +1,25 @@
 const User = require('../models/User');
-const Department = require('../models/Department'); // Needed if staff registration involves selecting a department
+const Department = require('../models/Department');
 const jwt = require('jsonwebtoken');
+const { body, validationResult } = require('express-validator');
+const asyncHandler = require('../middleware/asyncHandler');
 
 // JWT Secret - ensure this is in your .env file
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key-for-development';
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
-exports.registerUser = async (req, res) => {
+exports.registerUser = asyncHandler(async (req, res) => {
+  // Check for validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ 
+      message: 'Validation failed', 
+      errors: errors.array() 
+    });
+  }
+
   const { name, email, password, role, departmentName } = req.body;
 
   try {
@@ -26,6 +37,26 @@ exports.registerUser = async (req, res) => {
         return res.status(400).json({ message: 'Invalid role specified' });
     }
 
+    // Enhanced password validation
+    if (password.length < 8) {
+        return res.status(400).json({ 
+            message: 'Password must be at least 8 characters long' 
+        });
+    }
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+        return res.status(400).json({ 
+            message: 'Password must contain at least one uppercase letter, one lowercase letter, and one number' 
+        });
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({ 
+            message: 'Please provide a valid email address' 
+        });
+    }
+
     let departmentId = null;
     if (role === 'staff') {
       if (!departmentName) {
@@ -33,8 +64,6 @@ exports.registerUser = async (req, res) => {
       }
       const department = await Department.findOne({ name: departmentName });
       if (!department) {
-        // Optionally, allow admin to create department on the fly or restrict staff registration
-        // For now, assume department must exist.
         return res.status(400).json({ message: `Department '${departmentName}' not found. Staff cannot be registered without a valid department.` });
       }
       departmentId = department._id;
@@ -73,20 +102,28 @@ exports.registerUser = async (req, res) => {
       }
     );
   } catch (error) {
-    console.error('Registration error:', error.message);
     // Check for Mongoose validation errors
     if (error.name === 'ValidationError') {
         const messages = Object.values(error.errors).map(val => val.message);
         return res.status(400).json({ message: messages.join(', ') });
     }
-    res.status(500).json({ message: 'Server error during registration' });
+    throw error; // Let asyncHandler handle it
   }
-};
+});
 
 // @desc    Authenticate user & get token (Login)
 // @route   POST /api/auth/login
 // @access  Public
-exports.loginUser = async (req, res) => {
+exports.loginUser = asyncHandler(async (req, res) => {
+  // Check for validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ 
+      message: 'Validation failed', 
+      errors: errors.array() 
+    });
+  }
+
   const { email, password } = req.body;
 
   try {
@@ -131,15 +168,14 @@ exports.loginUser = async (req, res) => {
       }
     );
   } catch (error) {
-    console.error('Login error:', error.message);
-    res.status(500).json({ message: 'Server error during login' });
+    throw error; // Let asyncHandler handle it
   }
-};
+});
 
 // @desc    Get logged in user details
 // @route   GET /api/auth/me
 // @access  Private (requires token)
-exports.getMe = async (req, res) => {
+exports.getMe = asyncHandler(async (req, res) => {
   try {
     // req.user is set by the authMiddleware
     const user = await User.findById(req.user.id).select('-password').populate('department', 'name');
@@ -154,7 +190,6 @@ exports.getMe = async (req, res) => {
         department: user.department // This will be populated with name if staff
     });
   } catch (error) {
-    console.error('GetMe error:', error.message);
-    res.status(500).json({ message: 'Server error' });
+    throw error; // Let asyncHandler handle it
   }
-}; 
+});

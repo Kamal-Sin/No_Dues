@@ -56,18 +56,6 @@ const LoginPage = () => {
     setAuthError("");
     setLoading(true);
     
-    // First, test the connection to the backend
-    try {
-      console.log("Testing backend connection...");
-      await apiClient.get("/ping");
-      console.log("Backend connection successful");
-    } catch (error) {
-      console.error("Backend connection failed:", error);
-      setFormError("Unable to connect to the server. Please check your configuration.");
-      setLoading(false);
-      return;
-    }
-    
     try {
       const response = await apiClient.post("/auth/login", { email, password });
       login(response.data);
@@ -82,13 +70,6 @@ const LoginPage = () => {
           : "/";
       navigate(defaultRedirect, { replace: true });
     } catch (err) {
-      console.error("Login error details:", {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status,
-        config: err.config
-      });
-      
       const errMsg =
         err.response?.data?.message ||
         "Login failed. Please check your credentials.";
@@ -109,109 +90,111 @@ const LoginPage = () => {
     <Box
       sx={{
         minHeight: "100vh",
-        background: "#f5f5f5",
+        bgcolor: "#f5f5f5",
         display: "flex",
         alignItems: "center",
-        py: 4,
+        justifyContent: "center",
+        padding: 2,
       }}
     >
       <Container maxWidth="sm">
-        {/* Back to Home */}
-        <Box sx={{ mb: 3 }}>
-          <Button
-            component={RouterLink}
-            to="/"
-            startIcon={<ArrowBack />}
-            sx={{
-              color: "#666",
-              textTransform: "none",
-              fontWeight: 500,
-              "&:hover": {
-                color: "#ff6b35",
-              },
-            }}
-          >
-            Back to Home
-          </Button>
-        </Box>
-
         <Paper
-          elevation={8}
+          elevation={3}
           sx={{
-            p: 4,
-            borderRadius: 3,
-            background: "rgba(255, 255, 255, 0.95)",
-            backdropFilter: "blur(10px)",
-            border: "1px solid rgba(255, 255, 255, 0.2)",
+            padding: 4,
+            borderRadius: 2,
+            bgcolor: "white",
+            border: "1px solid #e0e0e0",
           }}
         >
+          {/* Back to Home Link */}
+          <Box sx={{ mb: 3, textAlign: "left" }}>
+            <Link
+              component={RouterLink}
+              to="/"
+              sx={{
+                display: "inline-flex",
+                alignItems: "center",
+                textDecoration: "none",
+                color: "text.secondary",
+                "&:hover": {
+                  color: "#ff6b35",
+                },
+              }}
+            >
+              <ArrowBack sx={{ mr: 1, fontSize: 20 }} />
+              Back to Home
+            </Link>
+          </Box>
+
           {/* Header */}
           <Box sx={{ textAlign: "center", mb: 4 }}>
             <Typography
-              variant="h3"
+              variant="h4"
               component="h1"
+              gutterBottom
               sx={{
                 fontWeight: "bold",
                 fontFamily: "serif",
                 color: "#333",
-                mb: 1,
               }}
             >
               Welcome Back
             </Typography>
-            <Typography variant="body1" sx={{ color: "#666" }}>
+            <Typography variant="body1" color="text.secondary">
               Sign in to your No-Dues account
             </Typography>
           </Box>
 
           {/* Error Messages */}
-          {authError && (
-            <Alert severity="warning" sx={{ mb: 3 }}>
-              {authError}
-            </Alert>
-          )}
-          {formError && (
+          {(formError || authError) && (
             <Alert severity="error" sx={{ mb: 3 }}>
-              {formError}
+              {formError || authError}
             </Alert>
           )}
 
           {/* Login Form */}
-          <Box component="form" onSubmit={handleLogin}>
+          <Box component="form" onSubmit={handleLogin} sx={{ mt: 1 }}>
             <TextField
+              margin="normal"
+              required
               fullWidth
+              id="email"
               label="Email Address"
-              type="email"
+              name="email"
+              autoComplete="email"
+              autoFocus
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
-              sx={{ mb: 3 }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <Email sx={{ color: "#666" }} />
+                    <Email color="action" />
                   </InputAdornment>
                 ),
               }}
             />
-
             <TextField
+              margin="normal"
+              required
               fullWidth
+              name="password"
               label="Password"
               type={showPassword ? "text" : "password"}
+              id="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
-              sx={{ mb: 3 }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <Lock sx={{ color: "#666" }} />
+                    <Lock color="action" />
                   </InputAdornment>
                 ),
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton
+                      aria-label="toggle password visibility"
                       onClick={() => setShowPassword(!showPassword)}
                       edge="end"
                     >
@@ -221,57 +204,48 @@ const LoginPage = () => {
                 ),
               }}
             />
-
             <Button
               type="submit"
               fullWidth
               variant="contained"
-              disabled={loading}
               sx={{
-                bgcolor: "#ff6b35",
+                mt: 3,
+                mb: 2,
                 py: 1.5,
-                fontSize: "1.1rem",
-                fontWeight: 600,
+                bgcolor: "#ff6b35",
                 textTransform: "none",
-                borderRadius: 2,
-                mb: 3,
+                fontWeight: 500,
                 "&:hover": {
                   bgcolor: "#e55a2b",
                 },
-                "&:disabled": {
-                  bgcolor: "#ccc",
-                },
               }}
+              disabled={loading}
             >
               {loading ? "Signing In..." : "Sign In"}
             </Button>
           </Box>
 
+          {/* Divider */}
           <Divider sx={{ my: 3 }}>
-            <Typography variant="body2" sx={{ color: "#666" }}>
+            <Typography variant="body2" color="text.secondary">
               OR
             </Typography>
           </Divider>
 
-          {/* Register Link */}
+          {/* Demo Accounts Info */}
           <Box sx={{ textAlign: "center" }}>
-            <Typography variant="body1" sx={{ color: "#666", mb: 1 }}>
-              Don't have an account?
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              Demo Accounts Available:
             </Typography>
-            <Link
-              component={RouterLink}
-              to="/register"
-              sx={{
-                color: "#ff6b35",
-                textDecoration: "none",
-                fontWeight: 600,
-                "&:hover": {
-                  textDecoration: "underline",
-                },
-              }}
-            >
-              Create Account
-            </Link>
+            <Typography variant="caption" color="text.secondary" display="block">
+              Student: student@demo.com / password123
+            </Typography>
+            <Typography variant="caption" color="text.secondary" display="block">
+              Staff: staff@demo.com / password123
+            </Typography>
+            <Typography variant="caption" color="text.secondary" display="block">
+              Admin: admin@demo.com / password123
+            </Typography>
           </Box>
         </Paper>
       </Container>

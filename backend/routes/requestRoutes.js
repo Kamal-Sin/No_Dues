@@ -26,12 +26,12 @@ router.put('/:id/action', protect, authorize('staff'), updateDepartmentApproval)
 // GET /api/requests/all (for admin) - lists all requests in the system
 router.get('/all', protect, authorize('admin'), getAllNoDuesRequests);
 
+// PDF generation route (must come before /:id route to avoid conflict)
+// GET /api/requests/:id/pdf - Generate and download a No-Dues PDF for an approved request
+router.get('/:id/pdf', protect, generateNoDuesPdf); // Authorization handled within controller
+
 // Common route for student, staff (relevant dept), admin
 // GET /api/requests/:id - Get a specific request by ID
 router.get('/:id', protect, getNoDuesRequestById); // Authorization handled within controller
-
-// PDF generation route
-// GET /api/requests/:id/pdf - Generate and download a No-Dues PDF for an approved request
-router.get('/:id/pdf', protect, generateNoDuesPdf); // Authorization handled within controller
 
 module.exports = router; 

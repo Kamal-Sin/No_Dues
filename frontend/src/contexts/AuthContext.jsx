@@ -4,31 +4,19 @@ import axios from "axios";
 
 // Helper function to safely get base URL
 const getApiBaseURL = () => {
-  console.log('Environment check:', {
-    process: typeof process,
-    env: process.env,
-    REACT_APP_API_URL: process.env?.REACT_APP_API_URL,
-    hostname: window.location.hostname
-  });
-  
   if (
     typeof process !== "undefined" &&
     process.env &&
     process.env.REACT_APP_API_URL
   ) {
-    console.log('Using environment variable:', process.env.REACT_APP_API_URL);
     return process.env.REACT_APP_API_URL;
   }
   
   // Fallback for production
   if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    console.log('Production detected, but no REACT_APP_API_URL found');
-    console.log('Using Railway fallback URL');
-    // Temporary explicit fallback for deployed site
     return 'https://nodues-production.up.railway.app/api';
   }
   
-  console.log('Using localhost fallback');
   return "http://localhost:5000/api";
 };
 
@@ -36,10 +24,6 @@ const baseURL = getApiBaseURL();
 const apiClient = axios.create({
   baseURL: baseURL,
 });
-
-// Log the final API base URL
-console.log('Final API Base URL:', baseURL);
-console.log('API Client baseURL:', apiClient.defaults.baseURL);
 
 apiClient.interceptors.request.use(
   (config) => {
@@ -49,10 +33,7 @@ apiClient.interceptors.request.use(
         config.headers["Authorization"] = `Bearer ${token}`;
       }
     } catch (error) {
-      console.error(
-        "Error accessing token from localStorage for API request",
-        error
-      );
+      console.error("Error accessing token from localStorage:", error.message);
     }
     return config;
   },
@@ -64,9 +45,6 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      console.warn(
-        "API request returned 401 Unauthorized. Dispatching auth-error-401 event."
-      );
       window.dispatchEvent(
         new CustomEvent("auth-error-401", {
           detail: {
@@ -87,7 +65,7 @@ const AuthContext = React.createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [authError, setAuthError] = useState(""); // For global auth errors like session expiry
+  const [authError, setAuthError] = useState("");
 
   const logout = useCallback(() => {
     localStorage.removeItem("noDuesUser");
@@ -103,7 +81,7 @@ export const AuthProvider = ({ children }) => {
         setUser(parsedUser);
       }
     } catch (error) {
-      console.error("Failed to parse user from localStorage", error);
+      console.error("Failed to parse user from localStorage:", error.message);
       logout(); // Clear corrupted storage
     }
     setLoading(false);
@@ -126,23 +104,27 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("noDuesUser", JSON.stringify(userData.user));
     localStorage.setItem("noDuesToken", userData.token);
     setUser(userData.user);
-    setAuthError("");
   };
 
   const value = useMemo(
-    () => ({ user, login, logout, loading, authError, setAuthError }),
-    [user, login, logout, loading, authError]
+    () => ({
+      user,
+      login,
+      logout,
+      loading,
+      authError,
+      setAuthError,
+    }),
+    [user, login, logout, loading, authError, setAuthError]
   );
 
-  if (loading && !user) {
+  if (loading) {
     return (
       <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-        }}
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="100vh"
       >
         <CircularProgress />
       </Box>
@@ -152,5 +134,12 @@ export const AuthProvider = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = () => React.useContext(AuthContext);
+export const useAuth = () => {
+  const context = React.useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
+
 export { apiClient };

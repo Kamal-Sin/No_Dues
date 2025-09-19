@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User'); // To potentially check if user still exists or is not disabled
-const JWT_SECRET = process.env.JWT_SECRET;
+const User = require('../models/User');
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key-for-development';
 
 // Middleware to protect routes
 exports.protect = async (req, res, next) => {
@@ -15,27 +15,19 @@ exports.protect = async (req, res, next) => {
       const decoded = jwt.verify(token, JWT_SECRET);
 
       // Add user from payload to request object
-      // Optionally, fetch user from DB to ensure they exist and are active
-      // req.user = await User.findById(decoded.user.id).select('-password');
-      // if (!req.user) {
-      //   return res.status(401).json({ message: 'Not authorized, user not found' });
-      // }
-      req.user = decoded.user; // Contains { id: '...', role: '...' }
+      req.user = await User.findById(decoded.user.id).select('-password');
+      if (!req.user) {
+        return res.status(401).json({ message: 'Not authorized, user not found' });
+      }
+      req.user = { id: req.user._id, role: req.user.role, department: req.user.department }; // Contains { id: '...', role: '...', department: '...' }
 
       next(); // Proceed to the next middleware or route handler
     } catch (error) {
-      console.error('Token verification error:', error.message);
-      if (error.name === 'JsonWebTokenError') {
-        return res.status(401).json({ message: 'Not authorized, token failed (invalid signature)' });
-      }
-      if (error.name === 'TokenExpiredError') {
-        return res.status(401).json({ message: 'Not authorized, token expired' });
-      }
-      return res.status(401).json({ message: 'Not authorized, token failed' });
+      res.status(401).json({ message: 'Token is not valid' });
     }
   }
 
   if (!token) {
     return res.status(401).json({ message: 'Not authorized, no token provided' });
   }
-}; 
+};

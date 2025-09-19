@@ -30,7 +30,9 @@ departmentSchema.pre('save', function(next) {
   next();
 });
 
-// Index for performance
+// Indexes for performance
 departmentSchema.index({ name: 1 });
+departmentSchema.index({ createdBy: 1 });
+departmentSchema.index({ name: 1, createdBy: 1 });
 
 module.exports = mongoose.model('Department', departmentSchema); 

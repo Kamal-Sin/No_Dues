@@ -88,5 +88,9 @@ noDuesRequestSchema.pre('save', function(next) {
 noDuesRequestSchema.index({ student: 1 });
 noDuesRequestSchema.index({ "departmentsStatus.department": 1 });
 noDuesRequestSchema.index({ overallStatus: 1 });
+noDuesRequestSchema.index({ student: 1, overallStatus: 1 });
+noDuesRequestSchema.index({ createdAt: -1, overallStatus: 1 });
+noDuesRequestSchema.index({ "departmentsStatus.status": 1, overallStatus: 1 });
+noDuesRequestSchema.index({ finalApprovalDate: -1 });
 
 module.exports = mongoose.model('NoDuesRequest', noDuesRequestSchema); 

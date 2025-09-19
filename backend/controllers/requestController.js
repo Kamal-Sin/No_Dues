@@ -49,12 +49,7 @@ exports.createNoDuesRequest = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Create no-dues request error:', error.message);
-    if (error.name === 'ValidationError') {
-        const messages = Object.values(error.errors).map(val => val.message);
-        return res.status(400).json({ message: messages.join(', ') });
-    }
-    res.status(500).json({ message: 'Server error while creating request' });
+    res.status(500).json({ message: 'Server error creating request' });
   }
 };
 
@@ -98,11 +93,7 @@ exports.getNoDuesRequestById = async (req, res) => {
 
     res.json(request);
   } catch (error) {
-    console.error('Get request by ID error:', error.message);
-    if (error.kind === 'ObjectId') {
-        return res.status(400).json({ message: 'Invalid request ID format' });
-    }
-    res.status(500).json({ message: 'Server error while fetching request' });
+    res.status(500).json({ message: 'Server error fetching request' });
   }
 };
 
@@ -119,43 +110,38 @@ exports.getMyNoDuesRequests = async (req, res) => {
 
         res.json(requests);
     } catch (error) {
-        console.error('Get my requests error:', error.message);
-        res.status(500).json({ message: 'Server error while fetching your requests' });
+        res.status(500).json({ message: 'Server error fetching requests' });
     }
 };
 
-// @desc    Get pending requests for a staff member's department
+// @desc    Get all requests for a staff member's department (regardless of status)
 // @route   GET /api/requests
 // @access  Private (Staff only)
 // Note: Admin might use GET /api/requests/all for a broader view
 exports.getPendingRequestsForStaff = async (req, res) => {
   try {
-    // Support both object and string department values from JWT
-    const staffDepartmentId = req.user.department?.id || req.user.department;
+    // Get department ID from user object (it's an ObjectId)
+    const staffDepartmentId = req.user.department;
 
     if (!staffDepartmentId) {
       return res.status(400).json({ message: 'Staff department not found in your profile. Cannot fetch requests.' });
     }
 
-    // Find requests where this staff's department has a 'pending' status.
-    // Also, the overall request should not be fully 'approved' or 'rejected' yet,
-    // though 'in-progress' is fine.
+    // Find all requests where this staff's department is involved
+    // Show all requests regardless of status so staff can see the current state
     const requests = await NoDuesRequest.find({
-      'departmentsStatus.department': staffDepartmentId,
-      'departmentsStatus.status': 'pending',
-      'overallStatus': { $in: ['pending', 'in-progress'] } // Only show requests that are still active
+      'departmentsStatus.department': staffDepartmentId
     })
     .populate('student', 'name email') // Populate student details
     .populate({ // Populate specific department details for clarity
         path: 'departmentsStatus.department',
         select: 'name'
     })
-    .sort({ createdAt: 1 }); // Oldest pending requests first
+    .sort({ createdAt: -1 }); // Show newest requests first
 
     res.json(requests);
   } catch (error) {
-    console.error('Get pending requests for staff error:', error.message);
-    res.status(500).json({ message: 'Server error while fetching pending requests' });
+    res.status(500).json({ message: 'Server error fetching pending requests' });
   }
 };
 
@@ -184,8 +170,8 @@ exports.updateDepartmentApproval = async (req, res) => {
         return res.status(400).json({ message: `Request is already finalized with status: ${request.overallStatus}. No further actions allowed.` });
     }
 
-    // Support both object and string department values from JWT
-    const staffDepartmentId = staffUser.department?.id || staffUser.department;
+    // Get department ID from user object (it's an ObjectId)
+    const staffDepartmentId = staffUser.department;
     if (!staffDepartmentId) {
         return res.status(403).json({ message: 'Your user profile is not associated with a department.' });
     }
@@ -224,11 +210,7 @@ exports.updateDepartmentApproval = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Update department approval error:', error.message);
-    if (error.kind === 'ObjectId') {
-        return res.status(400).json({ message: 'Invalid request ID format' });
-    }
-    res.status(500).json({ message: 'Server error while updating request status' });
+    res.status(500).json({ message: 'Server error updating approval' });
   }
 };
 
@@ -271,8 +253,7 @@ exports.getAllNoDuesRequests = async (req, res) => {
 
     res.json(requests);
   } catch (error) {
-    console.error('Get all requests (admin) error:', error.message);
-    res.status(500).json({ message: 'Server error while fetching all requests' });
+    res.status(500).json({ message: 'Server error fetching all requests' });
   }
 };
 
@@ -293,25 +274,34 @@ exports.generateNoDuesPdf = async (req, res) => {
       return res.status(404).json({ message: 'No-dues request not found' });
     }
 
+
     // Authorization:
     // 1. Student who owns the request, ONLY if it's approved.
     // 2. Admin can download any PDF.
     let authorized = false;
     if (user.role === 'admin') {
       authorized = true;
-    } else if (user.role === 'student' && request.student._id.toString() === user.id && request.overallStatus === 'approved') {
-      authorized = true;
-    } else if (user.role === 'student' && request.student._id.toString() === user.id && request.overallStatus !== 'approved') {
-      return res.status(403).json({ message: 'Your no-dues request is not yet fully approved. PDF cannot be generated.' });
+    } else if (user.role === 'student') {
+      // Compare IDs properly - both should be strings after conversion
+      const studentId = request.student._id.toString();
+      const userId = user.id.toString();
+      
+      
+      if (studentId === userId) {
+        if (request.overallStatus === 'approved') {
+          authorized = true;
+        } else {
+          return res.status(403).json({ 
+            message: `Your no-dues request is ${request.overallStatus}. PDF can only be generated for approved requests.` 
+          });
+        }
+      }
     }
 
     if (!authorized) {
-      return res.status(403).json({ message: 'Not authorized to download this PDF.' });
-    }
-
-    // Ensure the request is actually approved before generating PDF
-    if (request.overallStatus !== 'approved') {
-      return res.status(400).json({ message: 'No-dues request is not yet fully approved. PDF cannot be generated.' });
+      return res.status(403).json({ 
+        message: 'Not authorized to download this PDF. Only the student who owns the request or an admin can download the PDF.' 
+      });
     }
 
     // Create a new PDFDocument
@@ -320,6 +310,14 @@ exports.generateNoDuesPdf = async (req, res) => {
     // --- Set up HTTP headers for PDF download ---
     const studentNameSanitized = request.student.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
     const filename = `No_Dues_Certificate_${studentNameSanitized}_${request._id}.pdf`;
+    
+    // Set CORS headers first
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    
+    // Set PDF-specific headers
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
 
@@ -422,18 +420,6 @@ exports.generateNoDuesPdf = async (req, res) => {
     doc.end();
 
   } catch (error) {
-    console.error('PDF Generation Error:', error.message);
-    // Check if headers already sent, which can happen if PDF streaming started.
-    if (!res.headersSent) {
-      if (error.kind === 'ObjectId') {
-          return res.status(400).json({ message: 'Invalid request ID format for PDF generation' });
-      }
-      res.status(500).json({ message: 'Server error during PDF generation.' });
-    } else {
-      // If headers are sent, the PDF stream might be corrupted.
-      // Ending the response is important.
-      console.error('Error occurred after PDF stream started. Response may be incomplete.');
-      res.end();
-    }
+    res.status(500).json({ message: 'Server error generating PDF' });
   }
 }; 

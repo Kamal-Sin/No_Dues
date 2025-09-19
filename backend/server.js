@@ -5,19 +5,18 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const path = require('path');
-require('dotenv').config(); // To manage environment variables
+require('dotenv').config();
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const departmentRoutes = require('./routes/departmentRoutes');
 const requestRoutes = require('./routes/requestRoutes');
 
+// Import middleware
+const errorHandler = require('./middleware/errorHandler');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
-
-// Log the port being used
-console.log(`Starting server on port: ${PORT}`);
 
 // Security middleware
 app.use(helmet());
@@ -25,58 +24,46 @@ app.use(helmet());
 // Rate limiting for auth routes
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // limit each IP to 5 requests per windowMs for auth routes
+  max: 10, // limit each IP to 10 requests per windowMs for auth routes
   message: 'Too many authentication attempts, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-// CORS Configuration for separate frontend deployment
+// CORS Configuration
 const corsOptions = {
   origin: [
     'http://localhost:3000', // Local development
     process.env.FRONTEND_URL, // Environment variable for frontend URL
-    /\.vercel\.app$/, // Allow all Vercel domains
-    /\.railway\.app$/ // Allow all Railway domains
   ].filter(Boolean), // Remove undefined values
   credentials: true,
   optionsSuccessStatus: 200
 };
 
 // Middleware
-app.use(cors(corsOptions)); // Enable Cross-Origin Resource Sharing
-app.use(express.json()); // To parse JSON request bodies
+app.use(cors(corsOptions));
+app.use(express.json());
 
 // Apply rate limiting to auth routes
 app.use('/api/auth', authLimiter);
 
 // Database Connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/noDuesApp';
+const MONGODB_URI = process.env.MONGODB_URI;
 
 mongoose.connect(MONGODB_URI)
   .then(() => {
-    console.log('MongoDB connected successfully.');
-    const { host, name, port } = mongoose.connection;
-    console.log(`MongoDB connection details -> host: ${host}, port: ${port}, db: ${name}`);
+    console.log('✅ MongoDB connected successfully');
   })
   .catch(err => {
-    console.error('MongoDB connection error:', err);
-    // Don't exit the process, let the server start even if DB fails
+    console.error('❌ MongoDB connection error:', err.message);
+    console.error('❌ Shutting down server due to database connection failure');
+    process.exit(1); // Exit process on DB connection failure
   });
 
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use('/api/requests', requestRoutes);
-
-// API ping endpoint
-app.get('/api/ping', (req, res) => {
-  res.json({
-    status: 'OK',
-    message: 'API is running',
-    timestamp: new Date().toISOString()
-  });
-});
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -90,7 +77,7 @@ app.get('/health', (req, res) => {
       port: PORT
     });
   } catch (error) {
-    console.error('Health check error:', error);
+    console.error('Health check error:', error.message);
     res.status(500).json({
       status: 'ERROR',
       message: 'Health check failed',
@@ -108,7 +95,7 @@ app.get('/ping', (req, res) => {
   });
 });
 
-// Root endpoint for development
+// Root endpoint
 app.get('/', (req, res) => {
   res.json({
     message: 'No-Dues Backend API',
@@ -122,23 +109,18 @@ app.get('/', (req, res) => {
   });
 });
 
-// Global error handler (optional, but good practice)
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send({ message: 'Something broke!', error: err.message });
-});
+// Global error handler (must be after all routes)
+app.use(errorHandler);
 
 // Start server
 const server = app.listen(PORT, () => {
-  console.log(`✅ Server is running on port ${PORT}`);
-  console.log(`🔗 Health check: http://localhost:${PORT}/health`);
-  console.log(`🔗 Ping endpoint: http://localhost:${PORT}/ping`);
-  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📊 Health check: http://localhost:${PORT}/health`);
 });
 
 // Handle server errors
 server.on('error', (error) => {
-  console.error('❌ Server error:', error);
+  console.error('❌ Server error:', error.message);
   if (error.code === 'EADDRINUSE') {
     console.error(`❌ Port ${PORT} is already in use`);
   }
@@ -147,19 +129,18 @@ server.on('error', (error) => {
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('🛑 SIGTERM received, shutting down gracefully');
+  console.log('🛑 Shutting down gracefully...');
   server.close(() => {
-    console.log('✅ Process terminated');
+    console.log('✅ Server closed');
+    process.exit(0);
   });
 });
 
-// Handle uncaught exceptions (less aggressive for Railway)
+// Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught Exception:', error);
-  // Don't exit immediately, let Railway handle it
+  console.error('❌ Uncaught Exception:', error.message);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
-  // Don't exit immediately, let Railway handle it
+  console.error('❌ Unhandled Rejection:', reason);
 });

@@ -11,7 +11,7 @@ router.post('/', protect, authorize('admin'), createDepartment);
 
 // @route   GET /api/departments
 // @desc    Get all departments
-// @access  Public (needed for staff registration)
-router.get('/', getAllDepartments); // All users can see departments
+// @access  Private (authenticated users only)
+router.get('/', protect, getAllDepartments);
 
-module.exports = router; 
+module.exports = router;

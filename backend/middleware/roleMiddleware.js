@@ -15,4 +15,4 @@ exports.authorize = (...roles) => { // Takes an array of allowed roles
     }
     next(); // User has one of the required roles, proceed
   };
-}; 
+};
