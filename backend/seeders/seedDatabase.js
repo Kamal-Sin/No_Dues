@@ -36,48 +36,39 @@ const seedDatabase = async () => {
     // Create admin user
     const adminUser = new User({
       name: 'System Administrator',
-      email: 'admin@demo.com',
-      password: 'password123',
+      email: 'admin@gmail.com',
+      password: 'admin0',
       role: 'admin'
     });
     await adminUser.save();
     console.log('✅ Created admin user');
 
-    // Create staff users for each department
-    const staffUsers = [];
-    for (let i = 0; i < createdDepartments.length; i++) {
-      const dept = createdDepartments[i];
-      const staffUser = new User({
-        name: `${dept.name} Staff`,
-        email: `staff${i + 1}@demo.com`,
-        password: 'password123',
-        role: 'staff',
-        department: dept._id
-      });
-      staffUsers.push(staffUser);
-    }
-    await User.insertMany(staffUsers);
-    console.log('✅ Created staff users');
+    // Create staff user
+    const staffUser = new User({
+      name: 'Staff Member',
+      email: 'staff@gmail.com',
+      password: 'staff0',
+      role: 'staff',
+      department: createdDepartments[0]._id // Assign to first department (Computer Science)
+    });
+    await staffUser.save();
+    console.log('✅ Created staff user');
 
-    // Create sample students
-    const studentUsers = [];
-    for (let i = 1; i <= 5; i++) {
-      const student = new User({
-        name: `Student ${i}`,
-        email: `student${i}@demo.com`,
-        password: 'password123',
-        role: 'student'
-      });
-      studentUsers.push(student);
-    }
-    await User.insertMany(studentUsers);
-    console.log('✅ Created student users');
+    // Create student user
+    const studentUser = new User({
+      name: 'Student User',
+      email: 'student@gmail.com',
+      password: 'student',
+      role: 'student'
+    });
+    await studentUser.save();
+    console.log('✅ Created student user');
 
     console.log('\n🎉 Database seeded successfully!');
     console.log('\nDemo Accounts:');
-    console.log('Admin: admin@demo.com / password123');
-    console.log('Staff: staff1@demo.com to staff10@demo.com / password123');
-    console.log('Students: student1@demo.com to student5@demo.com / password123');
+    console.log('Admin: admin@gmail.com / admin0');
+    console.log('Staff: staff@gmail.com / staff0');
+    console.log('Student: student@gmail.com / student');
 
   } catch (error) {
     console.error('❌ Error seeding database:', error.message);
